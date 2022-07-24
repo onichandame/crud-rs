@@ -1,2 +1,7 @@
-# crud-rs
-CRUD generator for GraphQL services in Rust
+# CRUD
+
+CRUD generator for GraphQL services in Rust.
+
+- async-graphql
+- sea-orm
+- tokio

@@ -1,0 +1,34 @@
+[package]
+name = "crud"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macros = { path = "./macros" }
+async-graphql = { version = "^4", features = ["chrono"] }
+chrono = { version = "^0", features = ["serde"] }
+base64 = "^0"
+serde = "^1"
+serde_json = "^1"
+
+sea-orm = { version = "^0.9" }
+async-trait = "^0.1"
+futures = "^0.3"
+futures-util = "^0.3"
+
+[dev-dependencies]
+sea-orm = { version = "^0.9", features = [
+    "runtime-tokio-native-tls",
+    "sqlx-sqlite",
+] }
+sea-orm-migration = "^0.9"
+tokio = { version = "^1", features = ["full"] }
+
+[features]
+default = ["macros"]
+macros = []
+
+[workspace]
+members = ["macros"]
