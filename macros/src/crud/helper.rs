@@ -1,9 +1,72 @@
-use proc_macro2::{LexError, TokenStream};
-use quote::quote;
-use syn::{Attribute, Data, Field, Fields, Lit, Meta, MetaList, NestedMeta};
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
+use syn::{Attribute, Data, DeriveInput, Field, Fields, Lit, Meta, MetaList, NestedMeta};
 
-pub fn get_model_name(attrs: &Vec<Attribute>) -> TokenStream {
-    get_meta_field(&get_metas(attrs).unwrap(), "model").unwrap()
+pub fn get_default_hook_name(input: &DeriveInput) -> TokenStream {
+    format!("_DefaultHook{}", input.ident.to_string())
+        .parse()
+        .unwrap()
+}
+
+pub fn get_default_hook_constructor(input: &DeriveInput) -> TokenStream {
+    format!("{}::new()", get_default_hook_name(input))
+        .parse()
+        .unwrap()
+}
+
+pub fn has_customized_hook(input: &DeriveInput) -> bool {
+    let metas = get_metas(&input.attrs).unwrap();
+    get_value(&metas, "hook").map_or(false, |_| true)
+}
+
+pub fn get_hook_constructor(input: &DeriveInput) -> TokenStream {
+    let metas = get_metas(&input.attrs).unwrap();
+    get_value(&metas, "hook").map_or(get_default_hook_constructor(input), |v| v)
+}
+
+pub fn get_default_authorizer_name(input: &DeriveInput) -> TokenStream {
+    format!("_DefaultAuthorizer{}", input.ident.to_string())
+        .parse()
+        .unwrap()
+}
+
+pub fn get_default_authorizer_constructor(input: &DeriveInput) -> TokenStream {
+    format!("{}::new()", get_default_authorizer_name(input).to_string())
+        .parse()
+        .unwrap()
+}
+
+pub fn has_customized_authorizer(input: &DeriveInput) -> bool {
+    let metas = get_metas(&input.attrs).unwrap();
+    get_value(&metas, "authorizer").map_or(false, |_| true)
+}
+
+pub fn get_authorizer_constructor(input: &DeriveInput) -> TokenStream {
+    let metas = get_metas(&input.attrs).unwrap();
+    get_value(&metas, "authorizer").map_or(get_default_authorizer_constructor(input), |v| v)
+}
+
+pub fn get_filter_name(input: &DeriveInput) -> TokenStream {
+    let metas = get_metas(&input.attrs).unwrap();
+    get_value(&metas, "filter").map_or(
+        format!("{}Filter", input.ident.to_string())
+            .parse()
+            .unwrap(),
+        |v| v,
+    )
+}
+
+pub fn get_field_name(input: &DeriveInput) -> TokenStream {
+    format!("{}Field", input.ident.to_string()).parse().unwrap()
+}
+
+pub fn get_sort_name(input: &DeriveInput) -> TokenStream {
+    format!("{}Sort", input.ident.to_string()).parse().unwrap()
+}
+
+pub fn get_model(input: &DeriveInput) -> TokenStream {
+    let metas = &get_metas(&input.attrs).unwrap();
+    get_value(metas, "model").unwrap()
 }
 
 pub fn get_filter_by_type(ty: &str) -> TokenStream {
@@ -18,7 +81,7 @@ pub fn get_filter_by_type(ty: &str) -> TokenStream {
     }
 }
 
-pub fn has_meta(meta: &MetaList, path: &str) -> bool {
+pub fn get_flag(meta: &MetaList, path: &str) -> bool {
     meta.nested
         .iter()
         .find_map(|v| {
@@ -35,10 +98,7 @@ pub fn has_meta(meta: &MetaList, path: &str) -> bool {
         .map_or(false, |v| v)
 }
 
-pub fn get_meta_field(
-    meta: &MetaList,
-    path: &str,
-) -> Result<TokenStream, Box<dyn std::error::Error + Send + Sync>> {
+pub fn get_value(meta: &MetaList, path: &str) -> Result<TokenStream, String> {
     Ok(meta
         .nested
         .iter()
@@ -46,7 +106,7 @@ pub fn get_meta_field(
             if let NestedMeta::Meta(Meta::NameValue(v)) = v {
                 if v.path.is_ident(path) {
                     if let Lit::Str(v) = &v.lit {
-                        Some(v.value())
+                        Some(v.value().parse().unwrap())
                     } else {
                         None
                     }
@@ -57,56 +117,37 @@ pub fn get_meta_field(
                 None
             }
         })
-        .ok_or(format!("{} not specified in crud attribute", path))?
-        .parse()
-        .map_err(|v: LexError| v.to_string())?)
+        .ok_or(format!("{} not specified in crud attribute", path))?)
 }
 
-pub fn get_meta_list(
-    attrs: Vec<Attribute>,
-    name: &str,
-) -> Result<MetaList, Box<dyn std::error::Error + Send + Sync>> {
-    match attrs
+pub fn get_struct_fields(input: &DeriveInput) -> Vec<Field> {
+    if let Data::Struct(v) = &input.data {
+        if let Fields::Named(v) = &v.fields {
+            v.named.iter().map(|v| v.clone()).collect()
+        } else {
+            panic!("fields must be named for struct")
+        }
+    } else {
+        panic!("only struct can be derived")
+    }
+}
+
+pub fn get_metas(attrs: &Vec<Attribute>) -> Option<MetaList> {
+    get_meta_list(attrs, "crud")
+}
+
+fn get_meta_list(attrs: &Vec<Attribute>, name: &str) -> Option<MetaList> {
+    attrs
         .iter()
         .find_map(|v| {
             if v.path.is_ident(name) {
-                Some(v.parse_meta())
+                Some(v.parse_meta().unwrap())
             } else {
                 None
             }
         })
-        .ok_or(format!("helper attribute {} not set", name))??
-    {
-        Meta::List(v) => Ok(v),
-        _other => Err(format!("{} attribute must be a list", name).into()),
-    }
-}
-
-pub fn get_object_name(
-    meta: Vec<Attribute>,
-    attr_key: &str,
-) -> Result<TokenStream, Box<dyn std::error::Error + Send + Sync>> {
-    Ok(get_metas(&meta)
-        .and_then(|v| get_meta_field(&v, attr_key))
-        .map_err(|v| v.to_string())?)
-}
-
-pub fn get_struct_fields(
-    data: &Data,
-) -> Result<Vec<Field>, Box<dyn std::error::Error + Send + Sync>> {
-    if let Data::Struct(v) = &data {
-        if let Fields::Named(v) = &v.fields {
-            Ok(v.named.iter().map(|v| v.clone()).collect())
-        } else {
-            Err("fields must be named for struct".into())
-        }
-    } else {
-        Err("only struct can be derived".into())
-    }
-}
-
-pub fn get_metas(
-    attrs: &Vec<Attribute>,
-) -> Result<MetaList, Box<dyn std::error::Error + Send + Sync>> {
-    get_meta_list(attrs.clone(), "crud")
+        .and_then(|v| match v {
+            Meta::List(v) => Some(v),
+            _other => panic!("{} attribute must be a list", name),
+        })
 }

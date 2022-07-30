@@ -3,19 +3,14 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{DeriveInput, Type};
 
-use crate::crud::helper::{get_object_name, get_struct_fields};
+use crate::crud::helper::get_struct_fields;
 
-use super::helper::{get_filter_by_type, get_model_name};
+use super::helper::{get_filter_by_type, get_filter_name, get_model};
 
 pub fn filter_expand(input: &DeriveInput) -> TokenStream {
-    let name = get_object_name(input.attrs.clone(), "filter").map_or(
-        format!("{}Filter", input.ident.to_string())
-            .parse()
-            .unwrap(),
-        |v| v,
-    );
-    let fields = get_struct_fields(&input.data).unwrap();
-    let model = get_model_name(&input.attrs);
+    let filter_name = get_filter_name(input);
+    let model = get_model(input);
+    let fields = get_struct_fields(input);
     let (filter_body, build_body): (Vec<TokenStream>, Vec<TokenStream>) = fields
         .clone()
         .into_iter()
@@ -23,7 +18,7 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
             let name = v.ident.expect("fields must be named");
             let col: TokenStream = format!(
                 "{}::Column::{}",
-                model.to_string(),
+                model,
                 name.to_string().to_case(Case::Pascal)
             )
             .parse()
@@ -37,7 +32,7 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
             let filter = get_filter_by_type(ty.to_string().as_str());
             Some((
                 quote! {
-                    #name: Option<crud::#filter>
+                    #name: Option<#filter>
                 },
                 quote! {
                 if let Some(v)=&self.#name{
@@ -50,11 +45,11 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
     if filter_body.len() > 0 {
         quote! {
             #[derive(async_graphql::InputObject, Default, Debug)]
-            pub struct #name {
+            pub struct #filter_name {
                 #(#filter_body),*
             }
 
-            impl #name {
+            impl #filter_name {
                 pub fn build(&self)->sea_orm::Condition{
                     let mut filter = sea_orm::Condition::all();
                     #(#build_body)*

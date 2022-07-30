@@ -32,3 +32,6 @@ macros = []
 
 [workspace]
 members = ["macros"]
+
+[patch.crates-io]
+sea-query = { git = "https://github.com/onichandame/sea-query" }
