@@ -32,7 +32,7 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
             let filter = get_filter_by_type(ty.to_string().as_str());
             Some((
                 quote! {
-                    #name: Option<#filter>
+                    #name: Option<crud::#filter>
                 },
                 quote! {
                 if let Some(v)=&self.#name{

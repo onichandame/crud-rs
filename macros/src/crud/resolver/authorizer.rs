@@ -11,7 +11,7 @@ pub fn default_authorizer_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {
             struct #default_authorizer_name{}
-            impl Authorizer for #default_authorizer_name{}
+            impl crud::Authorizer for #default_authorizer_name{}
             impl #default_authorizer_name{
                 fn new()->Self{Self{}}
             }

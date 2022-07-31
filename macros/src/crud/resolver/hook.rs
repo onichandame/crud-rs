@@ -8,16 +8,16 @@ pub fn default_hook_expand(input: &DeriveInput) -> TokenStream {
     let default_hook_name = get_default_hook_name(input);
     let model = get_model(input);
     if has_customized_hook(input) {
+        quote! {}
+    } else {
         quote! {
             struct #default_hook_name{}
-            impl Hook for #default_hook_name{
+            impl crud::Hook for #default_hook_name{
                 type ActiveModel=#model::ActiveModel;
             }
             impl #default_hook_name{
                 fn new()->Self{Self{}}
             }
         }
-    } else {
-        quote! {}
     }
 }

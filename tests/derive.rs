@@ -10,14 +10,17 @@ mod entity;
 mod migration;
 
 #[tokio::test]
-async fn crud() {
+async fn simple_crud() {
     let db = get_db().await.unwrap();
     let schema = get_schema(db.clone()).await.unwrap();
-    schema.execute("").await;
+    let response = schema
+        .execute(r#"mutation {createAuthor(input:{name:"test"}){id name}}"#)
+        .await;
+    println!("{:?}", &response);
 }
 
 #[derive(SimpleObject, CRUD)]
-#[crud(model = "entity::author")]
+#[crud(model = "entity::author", subscribable)]
 struct Author {
     id: i32,
     #[crud(creatable, updatable)]

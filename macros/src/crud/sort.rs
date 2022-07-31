@@ -38,7 +38,7 @@ pub fn sort_expand(input: &DeriveInput) -> TokenStream {
         #[derive(async_graphql::InputObject)]
         pub struct #sort_name {
             field: #field_name,
-            direction: SortDirection,
+            direction: crud::SortDirection,
         }
 
         impl Into<#model_name ::Column> for #field_name{

@@ -20,11 +20,13 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     let mutation = mutation_expand(input);
     let subscription = subscription_expand(input);
     quote! {
+        use crud::futures::prelude::*;
+
         #default_authorizer
         #default_hook
         #query
-        //#mutation
-        //#subscription
+        #mutation
+        #subscription
 
 
     }

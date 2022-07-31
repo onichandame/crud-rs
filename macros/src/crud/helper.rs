@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{Attribute, Data, DeriveInput, Field, Fields, Lit, Meta, MetaList, NestedMeta};
 
 pub fn get_default_hook_name(input: &DeriveInput) -> TokenStream {
