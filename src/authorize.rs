@@ -1,4 +1,6 @@
-#[async_trait::async_trait]
+use async_graphql::async_trait::async_trait;
+
+#[async_trait]
 pub trait Authorizer {
     /// returns a condition used to filter the records for all query actions
     async fn authorize(

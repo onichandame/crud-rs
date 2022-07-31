@@ -74,7 +74,7 @@ pub fn get_filter_by_type(ty: &str) -> TokenStream {
         "String" => quote! {StringFilter},
         "i32" => quote! {IntFilter},
         "bool" => quote! {BooleanFilter},
-        "DateTime" | "chrono::NaiveDateTime" => quote! {NaiveDateFilter},
+        "DateTime" | "chrono::NaiveDateTime" | "NaiveDateTime" => quote! {DateTimeFilter},
         _other => {
             panic!("cannot find filter for type {}", ty)
         }
