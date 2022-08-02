@@ -15,7 +15,7 @@ async fn simple_crud() {
             r#"
         mutation {
             createAuthor(input:{name:"test"}){
-                id name createdAt
+                id name createdAt updatedAt
             }
         }"#,
         )
@@ -57,7 +57,7 @@ async fn simple_crud() {
             r#"
     query{
         authors(filter:{id:{eq:1}},paging:{first:1}){
-            edges{ node{ id name createdAt } }
+            edges{ node{ id name createdAt updatedAt } }
         }
     }
     "#,
@@ -88,4 +88,19 @@ async fn simple_crud() {
     assert_eq!(authors.len(), 1);
     let author = authors.get(0).unwrap();
     assert_eq!(author.name, "test2");
+    assert!(
+        author.updated_at.unwrap() - chrono::Utc::now().naive_utc() < chrono::Duration::seconds(1)
+    );
+    // delete
+    let response = schema
+        .execute(
+            r#"
+    query{
+        authors(filter:{id:{eq:1}},paging:{first:1}){
+            edges{ node{ id name createdAt updatedAt } }
+        }
+    }
+    "#,
+        )
+        .await;
 }

@@ -29,6 +29,7 @@ pub fn query_expand(input: &DeriveInput) -> TokenStream {
                 filter: Option<#filter_name>,
                 sorting: Option<Vec<#sort_name>>,
             ) -> async_graphql::Result<async_graphql::connection::Connection<crud::Cursor, #name>> {
+                use crud::futures::prelude::*;
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let authorizer=#authorizer_constructor;
                 let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;

@@ -5,7 +5,7 @@ use syn::{DeriveInput, Type};
 
 use crate::crud::helper::get_struct_fields;
 
-use super::helper::{get_filter_by_type, get_filter_name, get_model};
+use super::helper::{extract_type_from_option, get_filter_by_type, get_filter_name, get_model};
 
 pub fn filter_expand(input: &DeriveInput) -> TokenStream {
     let filter_name = get_filter_name(input);
@@ -23,7 +23,10 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
             )
             .parse()
             .unwrap();
-            let ty = match v.ty {
+            let ty = match extract_type_from_option(&v.ty)
+                .or(Some(&v.ty))
+                .expect(&format!("failed to get type of field {}", &name))
+            {
                 Type::Path(path) => path.path.to_token_stream(),
                 _other => {
                     panic!("type not supported")
