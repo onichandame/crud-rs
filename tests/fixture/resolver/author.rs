@@ -6,8 +6,13 @@ use serde::Deserialize;
 
 use crate::fixture::entity;
 
-#[derive(CRUD, SimpleObject, Deserialize, Debug)]
-#[crud(model = "entity::author", subscribable, hook = "AuthorHook::default()")]
+#[derive(SimpleObject, CRUD, Deserialize, Debug)]
+#[crud(
+    model = "entity::author",
+    hook = "AuthorHook::default()",
+    subscribable,
+    deletable
+)]
 #[serde(rename_all = "camelCase")]
 pub struct Author {
     pub id: i32,

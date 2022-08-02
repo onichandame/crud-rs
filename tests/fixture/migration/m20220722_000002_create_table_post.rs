@@ -22,7 +22,6 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Author::CreatedAt).date_time().not_null())
                     .col(ColumnDef::new(Author::UpdatedAt).date_time())
-                    .col(ColumnDef::new(Author::DeletedAt).date_time())
                     .col(ColumnDef::new(Post::Title).string().not_null())
                     .col(ColumnDef::new(Post::Content).string().not_null())
                     .col(ColumnDef::new(Post::UserId).integer().not_null())
