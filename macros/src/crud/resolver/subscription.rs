@@ -2,11 +2,11 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use crate::crud::helper::{get_filter_name, get_flag, get_metas, get_model};
+use crate::helper::{get_crud_metas, get_filter_name, get_flag, get_model};
 
 pub fn subscription_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
-    let metas = get_metas(&input.attrs).unwrap();
+    let metas = get_crud_metas(&input.attrs).unwrap();
     let subscribable = get_flag(&metas, "subscribable");
     let subscription_name = format!("{}Subscription", &name)
         .parse::<TokenStream>()

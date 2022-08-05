@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{Attribute, Data, DeriveInput, Field, Fields, Lit, Meta, MetaList, NestedMeta};
 
 pub fn get_filter_name(input: &DeriveInput) -> TokenStream {
-    let metas = get_metas(&input.attrs).unwrap();
+    let metas = get_crud_metas(&input.attrs).unwrap();
     get_value(&metas, "filter").map_or(
         format!("{}Filter", input.ident.to_string())
             .parse()
@@ -21,14 +21,14 @@ pub fn get_sort_name(input: &DeriveInput) -> TokenStream {
 }
 
 pub fn get_model(input: &DeriveInput) -> TokenStream {
-    let metas = &get_metas(&input.attrs).unwrap();
+    let metas = &get_crud_metas(&input.attrs).unwrap();
     get_value(metas, "model").unwrap()
 }
 
 pub fn get_filter_by_type(ty: &str) -> TokenStream {
     match ty {
         "String" => quote! {StringFilter},
-        "i32" => quote! {IntFilter},
+        "i32" | "i64" | "u32" | "u64" | "isize" | "usize" => quote! {IntFilter},
         "bool" => quote! {BooleanFilter},
         "DateTime" | "chrono::NaiveDateTime" | "NaiveDateTime" => quote! {DateTimeFilter},
         _other => {
@@ -132,7 +132,7 @@ pub fn get_struct_fields(input: &DeriveInput) -> Vec<Field> {
     }
 }
 
-pub fn get_metas(attrs: &Vec<Attribute>) -> Option<MetaList> {
+pub fn get_crud_metas(attrs: &Vec<Attribute>) -> Option<MetaList> {
     get_meta_lists(attrs, "crud").get(0).map(|v| v.clone())
 }
 

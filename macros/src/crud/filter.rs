@@ -3,9 +3,9 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{DeriveInput, Type};
 
-use crate::crud::helper::get_struct_fields;
-
-use super::helper::{extract_type_from_option, get_filter_by_type, get_filter_name, get_model};
+use crate::helper::{
+    extract_type_from_option, get_filter_by_type, get_filter_name, get_model, get_struct_fields,
+};
 
 pub fn filter_expand(input: &DeriveInput) -> TokenStream {
     let filter_name = get_filter_name(input);

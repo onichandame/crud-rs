@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use crate::crud::helper::{get_filter_name, get_model, get_sort_name};
+use crate::helper::{get_filter_name, get_model, get_sort_name};
 
 pub fn query_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
@@ -29,11 +29,12 @@ pub fn query_expand(input: &DeriveInput) -> TokenStream {
                 sorting: Option<Vec<#sort_name>>,
             ) -> async_graphql::Result<async_graphql::connection::Connection<crud::Cursor, #name>> {
                 use crud::futures::prelude::*;
+                use sea_orm::prelude::*;
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                 let condition = filter.map_or(authorize_condition.clone(), |v| sea_orm::Condition::add(authorize_condition.clone(),v.build()));
-                let query = <sea_orm::Select<#model::Entity> as sea_orm::QueryFilter>::filter(<#model::Entity as sea_orm::EntityTrait>::find(), condition);
-                let count = <sea_orm::Select<#model::Entity> as sea_orm::PaginatorTrait<'_, sea_orm::DatabaseConnection>>::count(query.clone(), db).await?;
+                let query = #model ::Entity::find().filter(condition);
+                let count = query.clone().count(db).await?;
                 let query = paging
                     .as_ref()
                     .map_or(Ok(query.clone()), |v| v.apply_pagination(query))?;

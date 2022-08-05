@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, Type};
 
-use crate::crud::helper::{get_filter_name, get_flag, get_metas, get_model, get_struct_fields};
+use crate::helper::{get_crud_metas, get_filter_name, get_flag, get_model, get_struct_fields};
 
 pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
@@ -15,7 +15,7 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
             .clone()
             .into_iter()
             .filter_map(|field| {
-                if let Some(metas) = get_metas(&field.attrs) {
+                if let Some(metas) = get_crud_metas(&field.attrs) {
                     if get_flag(&metas, "creatable") {
                         let name = field.ident.expect("fields must be named");
                         let ty = field.ty;
@@ -72,7 +72,7 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
             .clone()
             .into_iter()
             .filter_map(|field| {
-                if let Some(metas) = get_metas(&field.attrs) {
+                if let Some(metas) = get_crud_metas(&field.attrs) {
                     if get_flag(&metas, "updatable") {
                         let name = field.ident.expect("fields must be named");
                         let ty = field.ty;
@@ -165,7 +165,7 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
-    let deletable = get_flag(&get_metas(&input.attrs).unwrap(), "deletable");
+    let deletable = get_flag(&get_crud_metas(&input.attrs).unwrap(), "deletable");
     let delete_name: TokenStream = format!(
         "delete_{}",
         pluralizer::pluralize(&name.to_string(), 2, false)

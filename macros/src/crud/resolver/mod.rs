@@ -16,7 +16,5 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
         #query
         #mutation
         #subscription
-
-
     }
 }

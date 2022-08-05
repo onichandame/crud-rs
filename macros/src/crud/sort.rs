@@ -3,9 +3,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use crate::crud::helper::get_struct_fields;
-
-use super::helper::{get_field_name, get_model, get_sort_name};
+use crate::helper::{get_field_name, get_model, get_sort_name, get_struct_fields};
 
 pub fn sort_expand(input: &DeriveInput) -> TokenStream {
     let field_name = get_field_name(input);

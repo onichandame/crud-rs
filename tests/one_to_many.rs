@@ -1,4 +1,6 @@
-use crate::fixture::{get_db, get_schema, request, resolver::post::Post};
+use std::ops::Deref;
+
+use crate::fixture::{get_db, get_schema, request};
 
 use fixture::entity;
 use sea_orm::{ActiveModelTrait, Set};
@@ -54,8 +56,20 @@ async fn one_to_many() {
     // TODO post.children
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
+    struct PostChildrenResponse {
+        edges: Vec<PostEdge>,
+    }
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct PostNode {
+        id: i32,
+        title: String,
+        children: Option<PostChildrenResponse>,
+    }
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
     struct PostEdge {
-        node: Post,
+        node: PostNode,
     }
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
@@ -89,7 +103,7 @@ async fn one_to_many() {
         authors{
             edges{
                 node{
-                    posts{
+                    posts(filter:{parentId:{null:true}}){
                         edges{
                             node{
                                 id createdAt updatedAt title content parentId authorId
@@ -123,4 +137,20 @@ async fn one_to_many() {
         .iter()
         .map(|v| &v.node)
         .collect::<Vec<_>>();
+    assert_eq!(posts.len(), 1);
+    let root_post = posts.get(0).unwrap();
+    assert_eq!(root_post.id, post1.id);
+    let children = root_post
+        .children
+        .as_ref()
+        .unwrap()
+        .edges
+        .iter()
+        .map(|v| &v.node)
+        .collect::<Vec<_>>();
+    assert_eq!(children.len(), 2);
+    let post11_response = children.iter().find(|v| v.id == post11.id).unwrap().deref();
+    let post12_response = children.iter().find(|v| v.id == post12.id).unwrap().deref();
+    assert_eq!(post11_response.title, post11.title);
+    assert_eq!(post12_response.title, post12.title);
 }

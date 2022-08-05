@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use super::helper::{get_model, get_struct_fields};
+use crate::helper::{get_model, get_struct_fields};
 
 pub fn from_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
