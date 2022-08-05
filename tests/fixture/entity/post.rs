@@ -11,14 +11,23 @@ pub struct Model {
     pub updated_at: Option<DateTime>,
     pub title: String,
     pub content: String,
-    pub user_id: i32,
+    pub author_id: i32,
+    pub parent_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
+        belongs_to = "Entity",
+        from = "Column::ParentId",
+        to = "Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    SelfRef,
+    #[sea_orm(
         belongs_to = "super::author::Entity",
-        from = "Column::UserId",
+        from = "Column::AuthorId",
         to = "super::author::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"

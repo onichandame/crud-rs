@@ -4,6 +4,7 @@ use sea_orm::QuerySelect;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Cursor {
     pub offset: u64,
 }

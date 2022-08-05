@@ -20,7 +20,7 @@ async fn simple_crud() {
         r#"
         mutation {
             createAuthor(input:{name:"test"}){
-                id name createdAt updatedAt
+                id name
             }
         }"#,
     )
@@ -28,7 +28,6 @@ async fn simple_crud() {
     .create_author;
     assert_eq!(author.id, 1);
     assert_eq!(author.name, "test");
-    assert!(author.created_at - chrono::Utc::now().naive_utc() < chrono::Duration::seconds(1));
 
     // update&
     #[derive(Deserialize)]
@@ -68,7 +67,7 @@ async fn simple_crud() {
         r#"
     query{
         authors(filter:{id:{eq:1}},paging:{first:1}){
-            edges{ node{ id name createdAt updatedAt } }
+            edges{ node{ id name } }
         }
     }
     "#,
@@ -82,9 +81,6 @@ async fn simple_crud() {
     assert_eq!(authors.len(), 1);
     let author = authors.get(0).unwrap();
     assert_eq!(author.name, "test2");
-    assert!(
-        author.updated_at.unwrap() - chrono::Utc::now().naive_utc() < chrono::Duration::seconds(1)
-    );
     // delete
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]

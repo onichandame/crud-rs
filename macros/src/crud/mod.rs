@@ -12,11 +12,11 @@ use crate::crud::{filter::filter_expand, resolver::resolver_expand, sort::sort_e
 
 use self::from::from_expand;
 
-pub fn crud_expand(input: DeriveInput) -> TokenStream {
-    let filter = filter_expand(&input);
-    let sort = sort_expand(&input);
-    let from = from_expand(&input);
-    let resolver = resolver_expand(&input);
+pub fn crud_expand(input: &DeriveInput) -> TokenStream {
+    let filter = filter_expand(input);
+    let sort = sort_expand(input);
+    let from = from_expand(input);
+    let resolver = resolver_expand(input);
     quote! {
         #filter
         #sort

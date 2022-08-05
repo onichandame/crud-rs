@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 macros = { path = "./macros" }
 async-graphql = { version = "^4", features = ["chrono"] }
-chrono = { version = "^0", features = ["serde"] }
-base64 = "^0"
+chrono = { version = "^0.4", features = ["serde"] }
+base64 = "^0.13"
 serde = "^1"
 serde_json = "^1"
 

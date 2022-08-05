@@ -20,15 +20,21 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Author::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(Author::UpdatedAt).date_time())
+                    .col(ColumnDef::new(Post::CreatedAt).date_time().not_null())
+                    .col(ColumnDef::new(Post::UpdatedAt).date_time())
                     .col(ColumnDef::new(Post::Title).string().not_null())
                     .col(ColumnDef::new(Post::Content).string().not_null())
-                    .col(ColumnDef::new(Post::UserId).integer().not_null())
+                    .col(ColumnDef::new(Post::AuthorId).integer().not_null())
+                    .col(ColumnDef::new(Post::ParentId).integer())
                     .foreign_key(
                         ForeignKey::create()
-                            .from(Post::Table, Post::UserId)
+                            .from(Post::Table, Post::AuthorId)
                             .to(Author::Table, Author::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(Post::Table, Post::ParentId)
+                            .to(Post::Table, Post::Id),
                     )
                     .to_owned(),
             )

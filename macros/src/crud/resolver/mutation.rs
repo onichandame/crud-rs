@@ -2,18 +2,13 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, Type};
 
-use crate::crud::helper::{
-    get_authorizer_constructor, get_filter_name, get_flag, get_hook_constructor, get_metas,
-    get_model, get_struct_fields,
-};
+use crate::crud::helper::{get_filter_name, get_flag, get_metas, get_model, get_struct_fields};
 
 pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
     let mutation_name = format!("{}Mutation", &name).parse::<TokenStream>().unwrap();
     let model = get_model(input);
     let fields = get_struct_fields(input);
-    let authorizer_constructor = get_authorizer_constructor(input);
-    let hook_constructor = get_hook_constructor(input);
     let filter_name = get_filter_name(input);
     let (create_input_fields, create_input_transform_fields): (Vec<TokenStream>, Vec<TokenStream>) =
         fields
@@ -62,9 +57,8 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
             async fn #create_name(&self, ctx: &async_graphql::Context<'_>, input: #create_input_name) -> async_graphql::Result<#name> {
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let active_model = input.into_active_model();
-                let hooks=#hook_constructor;
                 let txn=sea_orm::TransactionTrait::begin(db).await?;
-                let active_model=crud::Hook::before_create(&hooks,ctx,active_model,&txn).await?;
+                let active_model=<#name as crud::Hook>::before_create(ctx,active_model,&txn).await?;
                 let doc = sea_orm::ActiveModelTrait::insert(active_model,&txn).await?;
                 txn.commit().await?;
                 Ok(doc.into())
@@ -149,12 +143,10 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
             async fn #update_name(&self, ctx: &async_graphql::Context<'_>,filter:Option<#filter_name>, update: #update_input_name) -> async_graphql::Result<u64> {
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let active_model = update.into_active_model();
-                let hooks=#hook_constructor;
-                let authorizer=#authorizer_constructor;
-                let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
+                let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                 let condition = filter.map_or(authorize_condition.clone(),|v| sea_orm::Condition::add(authorize_condition.clone(),v.build()));
                 let txn=sea_orm::TransactionTrait::begin(db).await?;
-                let active_model=crud::Hook::before_update(&hooks,ctx,condition.clone(),active_model,&txn).await?;
+                let active_model=<#name as crud::Hook>::before_update(ctx,condition.clone(),active_model,&txn).await?;
                 let result=sea_orm::UpdateMany::exec(
                     <sea_orm::UpdateMany<#model::Entity> as sea_orm::QueryFilter>::filter(
                         sea_orm::UpdateMany::set(
@@ -189,12 +181,10 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
                 filter: #filter_name,
             ) -> async_graphql::Result<u64> {
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
-                let authorizer=#authorizer_constructor;
-                let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
+                let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                 let condition = sea_orm::Condition::add(authorize_condition,filter.build());
-                let hooks=#hook_constructor;
                 let txn=sea_orm::TransactionTrait::begin(db).await?;
-                crud::Hook::before_delete(&hooks,ctx,condition.clone(),&txn).await?;
+                <#name as crud::Hook>::before_delete(ctx,condition.clone(),&txn).await?;
                 let result=sea_orm::DeleteMany::exec(
                     <sea_orm::DeleteMany<#model::Entity> as sea_orm::QueryFilter>::filter(
                         sea_orm::EntityTrait::delete_many(),

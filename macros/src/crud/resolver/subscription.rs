@@ -2,9 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use crate::crud::helper::{
-    get_authorizer_constructor, get_filter_name, get_flag, get_metas, get_model,
-};
+use crate::crud::helper::{get_filter_name, get_flag, get_metas, get_model};
 
 pub fn subscription_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
@@ -22,7 +20,6 @@ pub fn subscription_expand(input: &DeriveInput) -> TokenStream {
     .unwrap();
     let model = get_model(input);
     let filter_name = get_filter_name(input);
-    let authorizer_constructor = get_authorizer_constructor(input);
     if subscribable {
         quote! {
             #[derive(Default)]
@@ -37,8 +34,7 @@ pub fn subscription_expand(input: &DeriveInput) -> TokenStream {
                 ) -> async_graphql::Result<impl futures::stream::Stream<Item=#name>+'ctx>{
                     use crud::futures::prelude::*;
                     let db = ctx.data::<sea_orm::DatabaseConnection>()?;
-                    let authorizer=#authorizer_constructor;
-                    let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
+                    let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                     let f = sea_orm::Condition::add(sea_orm::Condition::all(),authorize_condition);
                     let f = filter.map_or(f.clone(), |v| f.add(v.build()));
                     let query = <sea_orm::Select<#model::Entity> as sea_orm::QueryFilter>::filter(<#model::Entity as sea_orm::EntityTrait>::find(), f);

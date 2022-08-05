@@ -133,21 +133,27 @@ pub fn get_struct_fields(input: &DeriveInput) -> Vec<Field> {
 }
 
 pub fn get_metas(attrs: &Vec<Attribute>) -> Option<MetaList> {
-    get_meta_list(attrs, "crud")
+    get_meta_lists(attrs, "crud").get(0).map(|v| v.clone())
 }
 
-fn get_meta_list(attrs: &Vec<Attribute>, name: &str) -> Option<MetaList> {
+pub fn get_meta_lists(attrs: &Vec<Attribute>, name: &str) -> Vec<MetaList> {
     attrs
         .iter()
-        .find_map(|v| {
+        .filter_map(|v| {
             if v.path.is_ident(name) {
                 Some(v.parse_meta().unwrap())
             } else {
                 None
             }
         })
-        .and_then(|v| match v {
-            Meta::List(v) => Some(v),
+        .map(|v| match v {
+            Meta::List(v) => v,
             _other => panic!("{} attribute must be a list", name),
         })
+        .collect::<Vec<_>>()
+}
+
+/// str -> "str"
+pub fn get_str_literal(ts: &TokenStream) -> TokenStream {
+    format!("\"{}\"", ts.to_string()).parse().unwrap()
 }

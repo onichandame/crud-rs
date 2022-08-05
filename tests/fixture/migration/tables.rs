@@ -4,9 +4,6 @@ use sea_orm_migration::prelude::*;
 pub enum Author {
     Table,
     Id,
-    CreatedAt,
-    UpdatedAt,
-    DeletedAt,
     Name,
 }
 
@@ -16,8 +13,8 @@ pub enum Post {
     Id,
     CreatedAt,
     UpdatedAt,
-    DeletedAt,
     Title,
     Content,
-    UserId,
+    AuthorId,
+    ParentId,
 }

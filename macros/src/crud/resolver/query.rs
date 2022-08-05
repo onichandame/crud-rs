@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-use crate::crud::helper::{get_authorizer_constructor, get_filter_name, get_model, get_sort_name};
+use crate::crud::helper::{get_filter_name, get_model, get_sort_name};
 
 pub fn query_expand(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
@@ -14,7 +14,6 @@ pub fn query_expand(input: &DeriveInput) -> TokenStream {
             .unwrap();
     let filter_name = get_filter_name(input);
     let sort_name = get_sort_name(input);
-    let authorizer_constructor = get_authorizer_constructor(input);
     let model = get_model(input);
     quote! {
         #[derive(Default)]
@@ -31,8 +30,7 @@ pub fn query_expand(input: &DeriveInput) -> TokenStream {
             ) -> async_graphql::Result<async_graphql::connection::Connection<crud::Cursor, #name>> {
                 use crud::futures::prelude::*;
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
-                let authorizer=#authorizer_constructor;
-                let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
+                let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                 let condition = filter.map_or(authorize_condition.clone(), |v| sea_orm::Condition::add(authorize_condition.clone(),v.build()));
                 let query = <sea_orm::Select<#model::Entity> as sea_orm::QueryFilter>::filter(<#model::Entity as sea_orm::EntityTrait>::find(), condition);
                 let count = <sea_orm::Select<#model::Entity> as sea_orm::PaginatorTrait<'_, sea_orm::DatabaseConnection>>::count(query.clone(), db).await?;

@@ -20,8 +20,6 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Author::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(Author::UpdatedAt).date_time())
                     .col(ColumnDef::new(Author::Name).string().not_null())
                     .to_owned(),
             )
