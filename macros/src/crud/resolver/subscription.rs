@@ -31,7 +31,7 @@ pub fn subscription_expand(input: &DeriveInput) -> TokenStream {
                     &self,
                     ctx: &async_graphql::Context<'ctx>,
                     filter: Option<#filter_name>
-                ) -> async_graphql::Result<impl futures::stream::Stream<Item=#name>+'ctx>{
+                ) -> async_graphql::Result<impl crud::futures::stream::Stream<Item=#name>+'ctx>{
                     use crud::futures::prelude::*;
                     let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                     let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
