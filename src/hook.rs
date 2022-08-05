@@ -26,4 +26,11 @@ pub trait Hook {
     ) -> async_graphql::Result<()> {
         Ok(())
     }
+    async fn after_delete(
+        _ctx: &async_graphql::Context<'_>,
+        _filter: sea_orm::Condition,
+        _txn: &sea_orm::DatabaseTransaction,
+    ) -> async_graphql::Result<()> {
+        Ok(())
+    }
 }

@@ -193,6 +193,7 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
                     &txn,
                 )
                 .await?;
+                <#name as crud::Hook>::after_delete(ctx,condition.clone(),&txn).await?;
                 txn.commit().await?;
                 Ok(result.rows_affected)
             }
