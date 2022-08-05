@@ -6,7 +6,7 @@ mod pagination;
 mod sort;
 
 #[cfg(feature = "macros")]
-pub use macros::{Hook, Relation, CRUD};
+pub use macros::{Authorizer, Hook, Relation, CRUD};
 
 pub use futures;
 

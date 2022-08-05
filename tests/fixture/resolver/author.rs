@@ -1,10 +1,10 @@
 use async_graphql::SimpleObject;
-use crud::{Hook, Relation, CRUD};
+use crud::{Authorizer, Hook, Relation, CRUD};
 use serde::Deserialize;
 
 use crate::fixture::entity;
 
-#[derive(SimpleObject, CRUD, Relation, Hook, Deserialize, Debug)]
+#[derive(SimpleObject, CRUD, Authorizer, Relation, Hook, Deserialize, Debug)]
 #[connection(
     name = "posts",
     target_dto = "super::post::Post",

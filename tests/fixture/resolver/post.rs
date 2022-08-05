@@ -1,6 +1,6 @@
 use async_graphql::{async_trait::async_trait, SimpleObject};
 use chrono::NaiveDateTime;
-use crud::{Hook, Relation, CRUD};
+use crud::{Authorizer, Hook, Relation, CRUD};
 use sea_orm::Set;
 use serde::Deserialize;
 
@@ -67,3 +67,5 @@ impl Hook for Post {
         Ok(input)
     }
 }
+
+impl Authorizer for Post {}

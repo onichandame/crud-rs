@@ -9,5 +9,3 @@ pub trait Authorizer {
         Ok(sea_orm::Condition::all())
     }
 }
-
-impl<T> Authorizer for T {}
