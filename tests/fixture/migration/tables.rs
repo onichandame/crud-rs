@@ -5,6 +5,7 @@ pub enum Author {
     Table,
     Id,
     Name,
+    Email,
 }
 
 #[derive(Iden)]

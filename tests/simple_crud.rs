@@ -19,8 +19,8 @@ async fn simple_crud() {
         &schema,
         r#"
         mutation {
-            createAuthor(input:{name:"test"}){
-                id name
+            createAuthor(input:{name:"test",email:"test"}){
+                id name email
             }
         }"#,
     )
@@ -28,8 +28,9 @@ async fn simple_crud() {
     .create_author;
     assert_eq!(author.id, 1);
     assert_eq!(author.name, "test");
+    assert_eq!(author.email.unwrap(), "test");
 
-    // update&
+    // update
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
     struct UpdateResponse {
@@ -67,7 +68,7 @@ async fn simple_crud() {
         r#"
     query{
         authors(filter:{id:{eq:1}},paging:{first:1}){
-            edges{ node{ id name } }
+            edges{ node{ id name email } }
         }
     }
     "#,
@@ -81,6 +82,7 @@ async fn simple_crud() {
     assert_eq!(authors.len(), 1);
     let author = authors.get(0).unwrap();
     assert_eq!(author.name, "test2");
+    assert_eq!(author.email.clone().unwrap(), "test");
     // delete
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]

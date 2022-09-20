@@ -21,6 +21,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Author::Name).string().not_null())
+                    .col(ColumnDef::new(Author::Email).string())
                     .to_owned(),
             )
             .await

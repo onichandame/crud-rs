@@ -55,11 +55,12 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
     let create_fn: TokenStream = if creatable {
         quote! {
             async fn #create_name(&self, ctx: &async_graphql::Context<'_>, input: #create_input_name) -> async_graphql::Result<#name> {
+                use sea_orm::prelude::*;
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let active_model = input.into_active_model();
                 let txn=sea_orm::TransactionTrait::begin(db).await?;
                 let active_model=<#name as crud::Hook>::before_create(ctx,active_model,&txn).await?;
-                let doc = sea_orm::ActiveModelTrait::insert(active_model,&txn).await?;
+                let doc = active_model.insert(&txn).await?;
                 txn.commit().await?;
                 Ok(doc.into())
             }
@@ -141,23 +142,14 @@ pub fn mutation_expand(input: &DeriveInput) -> TokenStream {
     let update_fn: TokenStream = if updatable {
         quote! {
             async fn #update_name(&self, ctx: &async_graphql::Context<'_>,filter:Option<#filter_name>, update: #update_input_name) -> async_graphql::Result<u64> {
+                use sea_orm::prelude::*;
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let active_model = update.into_active_model();
                 let authorize_condition=<#name as crud::Authorizer>::authorize(ctx).await?;
                 let condition = filter.map_or(authorize_condition.clone(),|v| sea_orm::Condition::add(authorize_condition.clone(),v.build()));
                 let txn=sea_orm::TransactionTrait::begin(db).await?;
                 let active_model=<#name as crud::Hook>::before_update(ctx,condition.clone(),active_model,&txn).await?;
-                let result=sea_orm::UpdateMany::exec(
-                    <sea_orm::UpdateMany<#model::Entity> as sea_orm::QueryFilter>::filter(
-                        sea_orm::UpdateMany::set(
-                            sea_orm::EntityTrait::update_many(),
-                            active_model,
-                        ),
-                        condition.clone(),
-                    ),
-                    &txn,
-                )
-                .await?;
+                let result=sea_orm::EntityTrait::update_many().set(active_model).filter(condition.clone()).exec(&txn).await?;
                 txn.commit().await?;
                 Ok(result.rows_affected)
             }
