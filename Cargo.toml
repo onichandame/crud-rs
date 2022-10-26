@@ -1,6 +1,6 @@
 [package]
 name = "crud"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -13,16 +13,16 @@ base64 = "^0.13"
 serde = "^1"
 serde_json = "^1"
 
-sea-orm = { version = "^0.9" }
+sea-orm = { version = "^0" }
 futures = "^0.3"
 futures-util = "^0.3"
 
 [dev-dependencies]
-sea-orm = { version = "^0.9", features = [
+sea-orm = { version = "^0", features = [
     "runtime-tokio-native-tls",
     "sqlx-sqlite",
 ] }
-sea-orm-migration = "^0.9"
+sea-orm-migration = "^0"
 tokio = { version = "^1", features = ["full"] }
 
 [features]
@@ -32,5 +32,3 @@ macros = []
 [workspace]
 members = ["macros"]
 
-[patch.crates-io]
-sea-query = { git = "https://github.com/onichandame/sea-query" }
